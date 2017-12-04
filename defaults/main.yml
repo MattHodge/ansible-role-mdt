@@ -1,0 +1,5 @@
+---
+mdt_temporary_directory: C:\Temp
+mdt_deployment_directory: C:\DeploymentShare
+mdt_local_account: mdt
+mdt_local_password: "Password1!"

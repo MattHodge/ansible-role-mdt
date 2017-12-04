@@ -1,0 +1,1 @@
+Any files you want to copy to the node should be placed in the `files` directory.

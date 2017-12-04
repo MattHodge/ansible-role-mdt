@@ -1,0 +1,12 @@
+build:
+    environment:
+          python: 2.7.7
+
+    dependencies:
+        before:
+            - pip2 install ansible-lint yamllint
+
+    tests:
+        override:
+            - yamllint $(find . -name '*.yml' | grep -v ./kitchen | grep -v ./.scrutinizer.yml | grep -v ./lib/ | grep -v vault)
+            - ansible-lint -p $(find . -name '*.yml' | grep -v ./kitchen | grep -v ./.scrutinizer.yml | grep -v ./lib/ | grep -v vault) -v

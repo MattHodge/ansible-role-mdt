@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  author: Matthew Hodgkins
+  company:
+  description: This is where the description of a role should go
+  min_ansible_version: 2.2
+  platforms:
+    - name: Windows
+      versions:
+        - 2012R2
+dependencies: []

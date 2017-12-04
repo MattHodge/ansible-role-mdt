@@ -1,0 +1,58 @@
+---
+driver:
+  name: vagrant
+  gui: true
+  linked_clone: true
+
+platforms:
+  - name: ansibleserver
+    driver_plugin: vagrant
+    box_check_update: false
+    driver_config:
+      box: <TO REPLACE>
+      box_url: <TO REPLACE>
+      network:
+      - [ 'private_network', { ip: '172.28.128.10' } ]
+    driver:
+      gui: false
+    transport:
+      max_ssh_sessions: 1
+    provisioner:
+      name: ansible_playbook
+      roles_path: ../
+      role_name: kitchen_test_role
+      ansible_connection: winrm
+      ansible_inventory: inventory/hosts
+      require_windows_support: true
+      require_chef_for_busser: false
+      ansible_host_key_checking: false
+      ansible_verbose: true
+      ansible_verbosity: 4
+      playbook: default.yml
+    verifier:
+      name: shell
+      command: echo 'Skipping Verify'
+
+  - name: win2012r2core
+    driver_config:
+      box: MattHodge/Windows2016-WMF5-NOCM
+      communicator: winrm
+      network:
+      - [ 'private_network', { ip: '172.28.128.11' } ]
+      - [ 'public_network', { bridge: 'en0: Wi-Fi (AirPort)' } ]
+      - [ 'forwarded_port', { guest: 80, host: 8080 } ]
+       # needed to force provision of the vagrantfile
+      provision: true
+      # needed to run the ConfigureRemotingForAnsible.ps1
+      vagrantfiles:
+        - vagrant_windows_target.rb
+    transport:
+      name: winrm
+    verifier:
+      name: pester
+      test_folder: tests
+    provisioner:
+      name: shell
+
+suites:
+  - name: default

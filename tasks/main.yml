@@ -1,0 +1,91 @@
+---
+- name: install powershell modules
+  win_psmodule:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - xSmbShare
+    - cNtfsAccessControl
+    - cMDT
+
+- name: install dotnet 3.5
+  win_feature:
+    name: Net-Framework-Core
+    state: present
+
+- name: install wds
+  win_feature:
+    name: wds
+    state: present
+    include_sub_features: true
+
+- name: create wds remote install directory
+  win_dsc:
+    resource_name: cWDSConfiguration
+    ensure: Present
+    remoteinstallpath: C:\\RemoteInstall
+
+- name: install windows-adk
+  win_chocolatey:
+    name: windows-adk
+    state: present
+
+- name: install mdt
+  win_chocolatey:
+    name: mdt
+    state: present
+
+# - name: Set wds to auto start
+#   win_service:
+#     name: WDSServer
+#     start_mode: auto
+#     state: started
+
+# - name: Set bits to auto start
+#   win_service:
+#     name: BITS
+#     start_mode: auto
+#     state: started
+
+- name: create mdt temporary directory
+  win_file:
+    path: C:\Temp
+    state: directory
+
+- name: create mdt deployment folder
+  win_file:
+    path: "{{ mdt_deployment_directory }}"
+    state: directory
+
+- name: create mdt user
+  win_user:
+    name: "{{ mdt_local_account }}"
+    password: "{{ mdt_local_password }}"
+    state: present
+    groups:
+      - Users
+
+- name: create mdt deployment network share
+  win_dsc:
+    resource_name: xSmbShare
+    ensure: Present
+    name: "DeploymentShare$"
+    path: "{{ mdt_deployment_directory }}"
+    fullaccess: "{{ ansible_hostname }}\\{{ mdt_local_account }}"
+    folderenumerationmode: accessbased
+
+- name: set folder permissions for deployment share
+  win_acl:
+    user: "{{ mdt_local_account }}"
+    path: "{{ mdt_deployment_directory }}"
+    type: allow
+    rights: FullControl
+
+- name: create mdt persistent drive
+  win_dsc:
+    resource_name: cMDTPersistentDrive
+    ensure: Present
+    name: DS001
+    path: "{{ mdt_deployment_directory }}"
+    description: Deployment Share
+    networkpath: "\\\\{{ ansible_hostname }}\\DeploymentShare$"
